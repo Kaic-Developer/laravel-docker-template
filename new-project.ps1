@@ -19,8 +19,7 @@ $TemplateDirectory = $PSScriptRoot
 
 # Por padrão, novos projetos serão criados em:
 # Projetos/Estudo/<nome-do-projeto>
-$ProjectsDirectory = Join-Path (Split-Path $TemplateDirectory -Parent) "..\Estudo"
-$ProjectsDirectory = [System.IO.Path]::GetFullPath($ProjectsDirectory)
+$ProjectsDirectory = Split-Path $TemplateDirectory -Parent
 
 $ProjectDirectory = Join-Path $ProjectsDirectory $Name
 
@@ -257,7 +256,7 @@ MAILPIT_WEB_PORT=$MailpitWebPort
     Write-Step "Criando novo projeto Laravel..."
 
     Invoke-Docker compose run --rm php `
-        composer create-project laravel/laravel app
+    composer create-project laravel/laravel .
 
     Write-Success "Laravel instalado."
 
