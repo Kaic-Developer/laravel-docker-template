@@ -1,16 +1,14 @@
 # Laravel Docker Template
 
-Template reutilizável para criação de ambientes de desenvolvimento Laravel utilizando Docker.
+Template reutilizável para criação automática de ambientes de desenvolvimento Laravel utilizando Docker.
 
-O objetivo deste projeto é permitir a criação de novos projetos Laravel sem precisar configurar manualmente PHP, Composer, MySQL, Nginx, Redis e servidor de e-mail a cada novo projeto.
-
-O ambiente é criado de forma isolada utilizando Docker Compose.
+O objetivo deste projeto é permitir a criação de novos projetos Laravel sem precisar instalar e configurar manualmente PHP, Composer, MySQL, Nginx, Redis e servidor de e-mail em cada projeto.
 
 ---
 
 ## Tecnologias
 
-O ambiente inclui:
+O ambiente utiliza:
 
 - Laravel
 - PHP 8.4
@@ -22,17 +20,42 @@ O ambiente inclui:
 - Mailpit
 - Docker
 - Docker Compose
+- PowerShell
 
 ---
 
-## Estrutura do template
+# Arquitetura
 
 ```text
-LaravelDockerTemplate/
+Navegador
+    │
+    ▼
+  Nginx
+    │
+    ▼
+ PHP-FPM
+    │
+    ▼
+ Laravel
+   │
+   ├── MySQL
+   ├── Redis
+   └── Mailpit
+```
+
+Cada serviço executa em seu próprio container Docker.
+
+---
+
+# Estrutura do template
+
+```text
+laravel-docker-template/
 │
 ├── Dockerfile
 ├── docker-compose.yml
 ├── new-project.ps1
+├── README.md
 ├── .gitignore
 │
 └── docker/
@@ -42,41 +65,11 @@ LaravelDockerTemplate/
 
 O template não contém uma aplicação Laravel pronta.
 
-A aplicação é criada automaticamente dentro da pasta:
-
-```text
-app/
-```
+O Laravel é criado automaticamente pelo script.
 
 ---
 
-## Objetivo
-
-Em vez de configurar um novo ambiente manualmente para cada projeto:
-
-```text
-Instalar PHP
-↓
-Configurar extensões
-↓
-Instalar Composer
-↓
-Instalar MySQL
-↓
-Configurar Nginx
-↓
-Configurar Redis
-↓
-Configurar servidor de e-mail
-↓
-Criar Laravel
-```
-
-este template automatiza grande parte do processo.
-
----
-
-## Pré-requisitos
+# Pré-requisitos
 
 Antes de utilizar o template, tenha instalado:
 
@@ -85,25 +78,37 @@ Antes de utilizar o template, tenha instalado:
 - Docker Compose
 - PowerShell
 
-O Docker Desktop deve estar aberto e com o Docker Engine em execução.
+O Docker Desktop precisa estar aberto e o Docker Engine precisa estar em execução.
 
 ---
 
-# Criando um novo projeto
+# Instalando o template
 
-Clone este repositório:
+Entre no diretório onde deseja trabalhar.
+
+Exemplo:
+
+```bash
+cd ~/OneDrive/Desktop/Projetos/Freelancer
+```
+
+Clone o repositório:
 
 ```bash
 git clone https://github.com/Kaic-Developer/laravel-docker-template.git
 ```
 
-Entre na pasta:
+Entre no template:
 
 ```bash
 cd laravel-docker-template
 ```
 
-No PowerShell:
+---
+
+# Criando um novo projeto
+
+## PowerShell
 
 ```powershell
 .\new-project.ps1 -Name meu-projeto
@@ -115,48 +120,100 @@ Exemplo:
 .\new-project.ps1 -Name ingressos
 ```
 
-Se estiver utilizando Git Bash:
+## Git Bash
 
 ```bash
 powershell.exe -ExecutionPolicy Bypass -File ./new-project.ps1 -Name ingressos
 ```
 
+O script fará toda a configuração automaticamente.
+
 ---
 
-# O que o script faz
+# Onde o projeto é criado?
 
-O `new-project.ps1` automatiza a preparação do ambiente.
+O projeto é criado ao lado da pasta `laravel-docker-template`.
+
+Por exemplo:
+
+```text
+Freelancer/
+│
+├── laravel-docker-template/
+│
+└── ingressos/
+```
+
+Se o template estiver em:
+
+```text
+Projetos/Freelancer/laravel-docker-template
+```
+
+e você executar:
+
+```powershell
+.\new-project.ps1 -Name ingressos
+```
+
+o projeto será criado em:
+
+```text
+Projetos/Freelancer/ingressos
+```
+
+Isso permite utilizar o template em diferentes diretórios.
+
+Por exemplo:
+
+```text
+Projetos/
+├── Estudo/
+├── Freelancer/
+├── Pessoais/
+└── Trabalho/
+```
+
+---
+
+# O que o script faz?
+
+O `new-project.ps1` automatiza a criação completa do ambiente.
 
 Ele:
 
 1. Verifica se o Docker está instalado.
 2. Verifica se o Docker Engine está rodando.
-3. Cria a pasta do novo projeto.
-4. Copia a infraestrutura Docker.
-5. Procura portas disponíveis.
-6. Cria as configurações do ambiente.
-7. Constrói a imagem PHP.
-8. Executa o Composer dentro do Docker.
-9. Cria uma nova aplicação Laravel.
-10. Configura o `.env` do Laravel.
-11. Configura a conexão com MySQL.
-12. Configura o Mailpit.
-13. Inicia os containers.
-14. Aguarda o MySQL ficar disponível.
-15. Limpa o cache do Laravel.
-16. Executa as migrations.
-17. Cria o storage link.
+3. Valida o nome do projeto.
+4. Cria a pasta do projeto.
+5. Copia a infraestrutura Docker.
+6. Procura portas disponíveis automaticamente.
+7. Cria a configuração Docker.
+8. Constrói a imagem PHP.
+9. Executa o Composer dentro do Docker.
+10. Cria uma nova aplicação Laravel.
+11. Configura o `.env` do Laravel.
+12. Configura a conexão com MySQL.
+13. Configura o Mailpit.
+14. Configura sessão e cache para desenvolvimento.
+15. Inicia os containers.
+16. Aguarda o MySQL ficar disponível.
+17. Configura as permissões de `storage` e `bootstrap/cache`.
+18. Limpa os caches do Laravel.
+19. Executa as migrations.
+20. Cria o `storage:link`.
+21. Exibe os endereços e portas utilizados.
 
 Ao final, o ambiente estará pronto para desenvolvimento.
 
 ---
 
-# Estrutura de um projeto gerado
+# Estrutura do projeto gerado
 
 Exemplo:
 
 ```text
-meu-projeto/
+ingressos/
 │
 ├── Dockerfile
 ├── docker-compose.yml
@@ -175,101 +232,111 @@ meu-projeto/
     ├── resources/
     ├── routes/
     ├── storage/
+    ├── tests/
+    ├── vendor/
     ├── artisan
     ├── composer.json
     └── .env
 ```
 
----
-
-# Arquitetura
+A pasta:
 
 ```text
-Browser
-   │
-   ▼
-Nginx
-   │
-   ▼
-PHP-FPM
-   │
-   ▼
-Laravel
-   │
-   ├── MySQL
-   │
-   ├── Redis
-   │
-   └── Mailpit
+app/
 ```
 
-Cada serviço executa em seu próprio container.
+contém a aplicação Laravel.
 
 ---
 
-# Portas
+# Portas automáticas
 
 O script procura portas disponíveis automaticamente.
 
 Por exemplo:
 
 ```text
-Projeto A
-Laravel: 8000
-Mailpit: 8025
+Projeto Rápidoo
 
-Projeto B
-Laravel: 8001
-Mailpit: 8026
+Laravel:
+localhost:8000
+
+Mailpit:
+localhost:8025
 ```
 
-Isso permite trabalhar com múltiplos projetos simultaneamente sem utilizar a mesma porta HTTP.
+Se essas portas já estiverem ocupadas:
+
+```text
+Projeto Ingressos
+
+Laravel:
+localhost:8001
+
+Mailpit:
+localhost:8026
+```
+
+Isso permite executar múltiplos projetos simultaneamente.
 
 ---
 
-# Comandos Docker
+# Iniciando um projeto existente
 
-Entre primeiro na pasta do projeto gerado.
+Entre na pasta do projeto:
 
-### Iniciar
+```bash
+cd ingressos
+```
+
+Inicie os containers:
 
 ```bash
 docker compose up -d
 ```
 
-### Ver containers
+Confira:
 
 ```bash
 docker compose ps
 ```
 
-### Parar
+---
+
+# Parando o projeto
 
 ```bash
 docker compose down
 ```
 
-### Logs
+Os dados persistidos em volumes não são apagados pelo `docker compose down`.
 
-```bash
-docker compose logs -f
-```
+---
 
-### Reconstruir a imagem
+# Reconstruindo a imagem
 
-Use quando houver alterações no `Dockerfile`:
+Quando alterar o `Dockerfile`:
 
 ```bash
 docker compose up -d --build
 ```
 
+Alterações normais no Laravel não precisam de rebuild.
+
+Por exemplo:
+
+- Controllers
+- Models
+- Routes
+- Views
+- Migrations
+- Services
+
 ---
 
-# Artisan
+# Comandos Artisan
 
-O PHP está dentro do container.
-
-Por isso, os comandos Artisan podem ser executados assim:
+Como o PHP executa dentro do container, utilize:
 
 ```bash
 docker compose exec php php artisan migrate
@@ -287,6 +354,12 @@ Criar model:
 docker compose exec php php artisan make:model Product
 ```
 
+Criar model com migration:
+
+```bash
+docker compose exec php php artisan make:model Product -m
+```
+
 Tinker:
 
 ```bash
@@ -297,6 +370,12 @@ Limpar caches:
 
 ```bash
 docker compose exec php php artisan optimize:clear
+```
+
+Ver informações:
+
+```bash
+docker compose exec php php artisan about
 ```
 
 ---
@@ -315,7 +394,7 @@ Adicionar pacote:
 docker compose exec php composer require vendor/package
 ```
 
-Atualizar:
+Atualizar dependências:
 
 ```bash
 docker compose exec php composer update
@@ -333,7 +412,13 @@ Dentro do container:
 
 ```bash
 php -v
+```
+
+```bash
 composer --version
+```
+
+```bash
 php artisan about
 ```
 
@@ -358,15 +443,39 @@ DB_USERNAME=laravel
 DB_PASSWORD=laravel
 ```
 
-`DB_HOST` deve ser `mysql`, pois esse é o nome do serviço dentro da rede Docker.
+É importante utilizar:
+
+```env
+DB_HOST=mysql
+```
+
+e não:
+
+```env
+DB_HOST=localhost
+```
+
+`mysql` é o nome do serviço dentro da rede Docker.
+
+---
+
+# Redis
+
+O template inclui um container Redis disponível para utilização pela aplicação.
+
+O serviço pode ser acessado internamente pelo hostname:
+
+```text
+redis
+```
 
 ---
 
 # Mailpit
 
-O Mailpit permite testar e-mails enviados pela aplicação sem utilizar um servidor de e-mail real.
+O Mailpit permite testar e-mails enviados pelo Laravel sem utilizar um servidor SMTP real.
 
-Configuração Laravel:
+O Laravel utiliza:
 
 ```env
 MAIL_MAILER=smtp
@@ -374,7 +483,7 @@ MAIL_HOST=mailpit
 MAIL_PORT=1025
 ```
 
-O endereço da interface web é informado pelo script após a criação do projeto.
+A interface web do Mailpit pode ser acessada pela porta informada pelo gerador.
 
 Normalmente:
 
@@ -386,7 +495,7 @@ http://localhost:8025
 
 # Logs
 
-Todos os serviços:
+Todos os containers:
 
 ```bash
 docker compose logs -f
@@ -416,42 +525,162 @@ Laravel:
 docker compose exec php tail -f storage/logs/laravel.log
 ```
 
+Use:
+
+```text
+Ctrl + C
+```
+
+para sair do acompanhamento dos logs.
+
+---
+
+# Verificando os containers
+
+```bash
+docker compose ps
+```
+
 ---
 
 # Validando o Docker Compose
-
-Antes de iniciar o ambiente, a configuração pode ser validada com:
 
 ```bash
 docker compose config
 ```
 
-Se não houver erros, o Compose conseguiu interpretar a configuração.
+Se não houver erros, o Docker Compose conseguiu interpretar a configuração.
 
 ---
 
-# Desenvolvimento
+# Permissões Laravel
 
-Este template foi criado para facilitar a criação de ambientes Laravel locais e continuará sendo aprimorado.
+O gerador configura automaticamente:
 
-Melhorias planejadas podem incluir:
+```text
+storage/
+bootstrap/cache/
+```
 
-- configuração completa do Redis no PHP;
-- testes automatizados do template;
-- escolha personalizada do diretório de destino;
+com as permissões necessárias para o PHP-FPM.
+
+Caso seja necessário corrigir manualmente:
+
+```bash
+docker compose exec php chown -R www-data:www-data storage bootstrap/cache
+```
+
+Depois:
+
+```bash
+docker compose exec php chmod -R 775 storage bootstrap/cache
+```
+
+E:
+
+```bash
+docker compose exec php php artisan optimize:clear
+```
+
+---
+
+# Fluxo completo
+
+```text
+GitHub
+   │
+   ▼
+git clone
+   │
+   ▼
+laravel-docker-template
+   │
+   ▼
+new-project.ps1
+   │
+   ├── Docker
+   ├── PHP 8.4
+   ├── Composer
+   ├── Nginx
+   ├── MySQL
+   ├── Redis
+   └── Mailpit
+   │
+   ▼
+Laravel
+   │
+   ▼
+Projeto pronto para desenvolvimento
+```
+
+---
+
+# Comandos rápidos
+
+## Subir
+
+```bash
+docker compose up -d
+```
+
+## Ver containers
+
+```bash
+docker compose ps
+```
+
+## Parar
+
+```bash
+docker compose down
+```
+
+## Logs
+
+```bash
+docker compose logs -f
+```
+
+## Migration
+
+```bash
+docker compose exec php php artisan migrate
+```
+
+## Tinker
+
+```bash
+docker compose exec php php artisan tinker
+```
+
+## Limpar cache
+
+```bash
+docker compose exec php php artisan optimize:clear
+```
+
+---
+
+# Atualizações futuras
+
+Possíveis melhorias:
+
 - suporte a diferentes versões do PHP;
-- configuração opcional de filas;
-- workers Laravel;
+- configuração avançada do Redis;
+- Laravel Queue Worker;
 - Laravel Scheduler;
 - HTTPS local;
-- integração com CI/CD.
+- testes automatizados do template;
+- escolha manual do diretório de destino;
+- CI/CD;
+- suporte a Linux/macOS além do script PowerShell.
 
 ---
 
-## Autor
+# Autor
 
 **Kaic Leonardo**
 
 GitHub: `Kaic-Developer`
 
-Desenvolvido como parte dos estudos e projetos de desenvolvimento backend com Laravel, Docker e infraestrutura de desenvolvimento.
+Template desenvolvido para estudos e desenvolvimento de aplicações Laravel utilizando ambientes Docker isolados e reutilizáveis.

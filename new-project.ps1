@@ -12,13 +12,18 @@ $ErrorActionPreference = "Stop"
 #
 # Author: Kaic Leonardo
 # GitHub: https://github.com/Kaic-Developer
-# LinkedIn: https://www.linkedin.com/in/kaic-leonardo-087347345/
 # ============================================================
 
 $TemplateDirectory = $PSScriptRoot
 
-# Por padrão, novos projetos serão criados em:
-# Projetos/Estudo/<nome-do-projeto>
+# O novo projeto será criado ao lado da pasta do template.
+#
+# Exemplo:
+#
+# Freelancer/
+# ├── laravel-docker-template/
+# └── ingressos/
+#
 $ProjectsDirectory = Split-Path $TemplateDirectory -Parent
 
 $ProjectDirectory = Join-Path $ProjectsDirectory $Name
@@ -73,6 +78,7 @@ function Get-AvailablePort {
     $port = $StartPort
 
     while (-not (Test-PortAvailable -Port $port)) {
+
         $port++
 
         if ($port -gt 65535) {
@@ -109,8 +115,10 @@ Write-Host "====================================================" -ForegroundCol
 Write-Host "        LARAVEL DOCKER PROJECT GENERATOR" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor DarkCyan
 Write-Host ""
+
 Write-Host "Projeto: $Name"
 Write-Host "Autor:   Kaic Leonardo"
+
 Write-Host ""
 
 
@@ -146,6 +154,7 @@ try {
     }
 
     if (-not (Test-Path $ProjectsDirectory)) {
+
         New-Item `
             -ItemType Directory `
             -Path $ProjectsDirectory `
@@ -256,7 +265,7 @@ MAILPIT_WEB_PORT=$MailpitWebPort
     Write-Step "Criando novo projeto Laravel..."
 
     Invoke-Docker compose run --rm php `
-    composer create-project laravel/laravel .
+        composer create-project laravel/laravel .
 
     Write-Success "Laravel instalado."
 
@@ -275,12 +284,19 @@ MAILPIT_WEB_PORT=$MailpitWebPort
 
     $LaravelEnv = Get-Content $LaravelEnvPath -Raw
 
+
+    # ========================================================
     # URL
+    # ========================================================
+
     $LaravelEnv = $LaravelEnv `
         -replace 'APP_URL=.*', "APP_URL=http://localhost:$AppPort"
 
 
-    # Banco
+    # ========================================================
+    # BANCO DE DADOS
+    # ========================================================
+
     $LaravelEnv = $LaravelEnv `
         -replace 'DB_CONNECTION=.*', 'DB_CONNECTION=mysql'
 
@@ -300,7 +316,10 @@ MAILPIT_WEB_PORT=$MailpitWebPort
         -replace '# DB_PASSWORD=.*', 'DB_PASSWORD=laravel'
 
 
-    # Session / Cache
+    # ========================================================
+    # SESSION / CACHE
+    # ========================================================
+
     $LaravelEnv = $LaravelEnv `
         -replace 'SESSION_DRIVER=.*', 'SESSION_DRIVER=file'
 
@@ -308,7 +327,10 @@ MAILPIT_WEB_PORT=$MailpitWebPort
         -replace 'CACHE_STORE=.*', 'CACHE_STORE=file'
 
 
-    # Mailpit
+    # ========================================================
+    # MAILPIT
+    # ========================================================
+
     $LaravelEnv = $LaravelEnv `
         -replace 'MAIL_MAILER=.*', 'MAIL_MAILER=smtp'
 
@@ -317,6 +339,7 @@ MAILPIT_WEB_PORT=$MailpitWebPort
 
     $LaravelEnv = $LaravelEnv `
         -replace 'MAIL_PORT=.*', 'MAIL_PORT=1025'
+
 
     Set-Content `
         -Path $LaravelEnvPath `
@@ -364,7 +387,6 @@ MAILPIT_WEB_PORT=$MailpitWebPort
         else {
 
             Start-Sleep -Seconds 2
-
         }
     }
 
@@ -376,7 +398,22 @@ MAILPIT_WEB_PORT=$MailpitWebPort
 
 
     # ========================================================
-    # 12. LIMPAR CONFIGURAÇÕES
+    # 12. CONFIGURAR PERMISSÕES DO LARAVEL
+    # ========================================================
+
+    Write-Step "Configurando permissões do Laravel..."
+
+    Invoke-Docker compose exec -T php `
+        chown -R www-data:www-data storage bootstrap/cache
+
+    Invoke-Docker compose exec -T php `
+        chmod -R 775 storage bootstrap/cache
+
+    Write-Success "Permissões configuradas."
+
+
+    # ========================================================
+    # 13. LIMPAR CONFIGURAÇÕES
     # ========================================================
 
     Write-Step "Limpando cache do Laravel..."
@@ -388,7 +425,7 @@ MAILPIT_WEB_PORT=$MailpitWebPort
 
 
     # ========================================================
-    # 13. MIGRATIONS
+    # 14. MIGRATIONS
     # ========================================================
 
     Write-Step "Executando migrations..."
@@ -400,7 +437,7 @@ MAILPIT_WEB_PORT=$MailpitWebPort
 
 
     # ========================================================
-    # 14. STORAGE LINK
+    # 15. STORAGE LINK
     # ========================================================
 
     Write-Step "Criando storage link..."
@@ -455,7 +492,6 @@ MAILPIT_WEB_PORT=$MailpitWebPort
     Write-Host ""
     Write-Host "===================================================="
     Write-Host ""
-
 }
 catch {
 
@@ -464,6 +500,7 @@ catch {
     Write-Failure $_.Exception.Message
 
     Write-Host ""
+
     Write-Host "O projeto não pôde ser criado completamente." `
         -ForegroundColor Yellow
 
